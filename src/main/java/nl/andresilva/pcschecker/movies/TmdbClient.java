@@ -30,6 +30,10 @@ public class TmdbClient {
                 .uri("/search/movie?query={q}&api_key={k}&language=en-US&page=1", query, apiKey)
                 .retrieve()
                 .body(TmdbMovieResult.SearchResponse.class);
+
+        String s = null;
+        s.length();
+
         return response != null ? response.results() : List.of();
     }
 
