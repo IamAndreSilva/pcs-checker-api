@@ -1,0 +1,42 @@
+name: Claude PR Review
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, ready_for_review ]
+    branches: [ main ]
+
+jobs:
+  review:
+    name: Automated Code Review
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Claude Code Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          track_progress: true
+          use_sticky_comment: true
+          prompt: |
+            Review this pull request for a Spring Boot 4 / Java 21 REST API
+            (pcs-checker-api — a post-credit scene voting API).
+
+            Focus on:
+            - Correctness: logic bugs, null safety, transaction boundaries
+            - Spring idioms: @Transactional, bean lifecycle, security config
+            - Security: auth/authorization gaps, injection risks, sensitive data exposure
+            - API design: HTTP status codes, error handling, response consistency
+            - Code quality: duplication, naming, unnecessary complexity
+
+            Post a top-level summary comment. Be concise — skip obvious correct patterns, focus on actionable findings.
