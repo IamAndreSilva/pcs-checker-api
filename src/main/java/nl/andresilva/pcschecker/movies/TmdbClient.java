@@ -1,7 +1,5 @@
 package nl.andresilva.pcschecker.movies;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
@@ -12,8 +10,6 @@ import java.util.List;
 @Component
 public class TmdbClient {
 
-    private static final Logger log = LoggerFactory.getLogger(TmdbClient.class);
-
     private final RestClient restClient;
     private final String apiKey;
     private final String imageBaseUrl;
@@ -23,7 +19,6 @@ public class TmdbClient {
             @Value("${tmdb.image.base-url}") String imageBaseUrl) {
         this.apiKey = apiKey;
         this.imageBaseUrl = imageBaseUrl;
-        log.info("TMDB API key: {}", apiKey);
         this.restClient = RestClient.builder()
                 .baseUrl("https://api.themoviedb.org/3")
                 .build();
