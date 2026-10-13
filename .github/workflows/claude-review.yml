@@ -29,14 +29,17 @@ jobs:
           track_progress: true
           use_sticky_comment: true
           prompt: |
-            Review this pull request for a Spring Boot 4 / Java 21 REST API
-            (pcs-checker-api — a post-credit scene voting API).
+            Review PR #${{ github.event.pull_request.number }} in the repo ${{ github.repository }}.
 
-            Focus on:
-            - Correctness: logic bugs, null safety, transaction boundaries
-            - Spring idioms: @Transactional, bean lifecycle, security config
-            - Security: auth/authorization gaps, injection risks, sensitive data exposure
-            - API design: HTTP status codes, error handling, response consistency
-            - Code quality: duplication, naming, unnecessary complexity
+            Steps:
+            1. Run `gh pr diff ${{ github.event.pull_request.number }}` to get the diff.
+            2. Run `gh pr view ${{ github.event.pull_request.number }}` to get the PR description.
+            3. Review the changes focusing on:
+               - Correctness: logic bugs, null safety, transaction boundaries
+               - Spring idioms: @Transactional, bean lifecycle, security config
+               - Security: auth/authorization gaps, injection risks, sensitive data exposure
+               - API design: HTTP status codes, error handling, response consistency
+               - Code quality: duplication, naming, unnecessary complexity
+            4. Post your findings as a comment with `gh pr comment ${{ github.event.pull_request.number }} --body "..."`.
 
-            Post a top-level summary comment. Be concise — skip obvious correct patterns, focus on actionable findings.
+            Be concise — skip obvious correct patterns, focus on actionable findings.
