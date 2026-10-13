@@ -1,4 +1,7 @@
-FROM eclipse-temurin:21-jdk AS build
+# The build stage runs on the builder's own architecture; its output is
+# platform-independent, so only the runtime stage is built per target platform.
+ARG BUILDPLATFORM=linux/amd64
+FROM --platform=$BUILDPLATFORM eclipse-temurin:21-jdk AS build
 WORKDIR /build
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
