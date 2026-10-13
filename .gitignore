@@ -35,3 +35,7 @@ build/
 ### Local config ###
 .env
 application-local.properties
+
+### Claude Code / MCP ###
+.mcp.json
+.claude/

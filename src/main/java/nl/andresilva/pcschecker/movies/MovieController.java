@@ -36,6 +36,7 @@ public class MovieController {
 
         List<MovieDto> movies = results.stream().map(r -> {
             long[] counts = voteCounts.getOrDefault(r.id(), new long[]{0, 0});
+
             return new MovieDto(
                     r.id(), r.title(), r.year(),
                     tmdbClient.posterUrl(r.posterPath()),
