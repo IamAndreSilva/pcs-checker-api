@@ -16,12 +16,13 @@ public class AccountService {
     }
 
     /**
-     * Permanently removes the user and every vote cast while signed in.
+     * Permanently removes the user. Votes cast while signed in are kept in the tallies but
+     * anonymized, so they can no longer be linked to the person.
      */
     @Transactional
     public void deleteAccount(String oauthId) {
         userRepository.findByOauthId(oauthId).ifPresent(user -> {
-            voteRepository.deleteByUserId(user.getId());
+            voteRepository.anonymizeByUserId(user.getId());
             userRepository.delete(user);
         });
     }

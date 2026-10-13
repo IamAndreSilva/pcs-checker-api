@@ -73,7 +73,7 @@ The frontend is expected to run separately at `http://localhost:5173`.
 | `DELETE` | `/api/movies/{tmdbId}/votes` | public | Retract a vote |
 | `GET` | `/api/auth/me` | public | Current authenticated user, or `null` |
 | `POST` | `/api/auth/logout` | public | Log out |
-| `DELETE` | `/api/auth/me` | signed in | Delete the current account and the votes cast with it |
+| `DELETE` | `/api/auth/me` | signed in | Delete the current account; its votes stay in the tallies but are anonymized |
 | `GET` | `/api/oauth2/authorization/google` | public | Start Google OAuth2 login; Google redirects back to `/api/login/oauth2/code/google` |
 | `GET` | `/actuator/health` | public | Health check (liveness/readiness probes under `/actuator/health/{liveness,readiness}`) |
 

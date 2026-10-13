@@ -32,7 +32,11 @@ public interface VoteRepository extends JpaRepository<Vote, UUID> {
     @Query("UPDATE Vote v SET v.ipAddress = NULL WHERE v.ipAddress IS NOT NULL AND v.createdAt < :cutoff")
     int clearIpAddressesOlderThan(@Param("cutoff") Instant cutoff);
 
+    // Detaches a user's votes so they still count but can no longer be linked to anyone:
+    // the account link and IP are removed and each vote gets a token nobody holds.
     @Modifying(flushAutomatically = true, clearAutomatically = true)
-    @Query("DELETE FROM Vote v WHERE v.user.id = :userId")
-    int deleteByUserId(@Param("userId") UUID userId);
+    @Query(value = "UPDATE votes SET user_id = NULL, ip_address = NULL, "
+            + "anonymous_token = CAST(gen_random_uuid() AS VARCHAR) WHERE user_id = :userId",
+            nativeQuery = true)
+    int anonymizeByUserId(@Param("userId") UUID userId);
 }
