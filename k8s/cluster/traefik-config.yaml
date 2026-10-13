@@ -1,4 +1,4 @@
-# k3s-specific: customises the bundled Traefik.
+# k3s-specific: customises the bundled Traefik (chart v40).
 apiVersion: helm.cattle.io/v1
 kind: HelmChartConfig
 metadata:
@@ -12,8 +12,11 @@ spec:
         externalTrafficPolicy: Local
     ports:
       web:
-        redirections:
-          entryPoint:
-            to: websecure
-            scheme: https
-            permanent: true
+        # Let's Encrypt HTTP-01 challenges must not be redirected.
+        allowACMEByPass: true
+        http:
+          redirections:
+            entryPoint:
+              to: websecure
+              scheme: https
+              permanent: true

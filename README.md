@@ -116,7 +116,7 @@ kubectl -n pcs-checker port-forward svc/ui 8081:80
 
 ### Production (k3s)
 
-1. Replace `PCS_HOST` in `k8s/overlays/prod` with the public hostname and point its DNS `A` record at the server.
+1. Set the public hostname in `k8s/overlays/prod` (currently `stingercheck.com`) and point its DNS `A` record at the server.
 2. Install [cert-manager](https://cert-manager.io/docs/installation/), then `kubectl apply -f k8s/cluster/`.
 3. Create the secret (never committed):
 

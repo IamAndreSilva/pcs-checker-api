@@ -18,5 +18,5 @@ configMapGenerator:
   - name: api-config
     behavior: merge
     literals:
-      - APP_FRONTEND_URL=https://PCS_HOST
+      - APP_FRONTEND_URL=https://stingercheck.com
       - SERVER_SERVLET_SESSION_COOKIE_SECURE=true

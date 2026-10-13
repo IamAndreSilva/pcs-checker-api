@@ -8,10 +8,10 @@ spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - PCS_HOST
+        - stingercheck.com
       secretName: pcs-checker-tls
   rules:
-    - host: PCS_HOST
+    - host: stingercheck.com
       http:
         paths:
           - path: /api
