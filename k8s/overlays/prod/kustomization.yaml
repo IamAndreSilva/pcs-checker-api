@@ -12,7 +12,7 @@ images:
   - name: ghcr.io/iamandresilva/pcs-checker-api
     newTag: 1424dc8a05c433d4a289e0484c4e90a264d511d2
   - name: ghcr.io/iamandresilva/pcs-checker-ui
-    newTag: fcb285f3a6f0bf2d76c5a182104f245af555be94
+    newTag: caead4f084a9d83148b1a647c56064746a6722ba
 
 configMapGenerator:
   - name: api-config
