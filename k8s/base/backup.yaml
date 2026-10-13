@@ -34,11 +34,15 @@ spec:
                 - name: RETENTION_DAYS
                   value: "7"
               command:
-                - /bin/sh
-                - -ec
+                - /bin/bash
+                - -euo
+                - pipefail
+                - -c
                 - |
-                  pg_dump -h postgres -U postgres pcschecker | gzip > /backups/pcschecker-$(date +%F).sql.gz
-                  find /backups -name '*.sql.gz' -mtime +$RETENTION_DAYS -delete
+                  target=/backups/pcschecker-$(date +%F).sql.gz
+                  pg_dump -h postgres -U postgres pcschecker | gzip > "$target.tmp"
+                  mv "$target.tmp" "$target"
+                  find /backups -name '*.sql.gz' -mtime +"$RETENTION_DAYS" -delete
               volumeMounts:
                 - name: backups
                   mountPath: /backups
