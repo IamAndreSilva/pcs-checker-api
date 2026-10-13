@@ -72,7 +72,8 @@ The frontend is expected to run separately at `http://localhost:5173`.
 | `DELETE` | `/api/movies/{tmdbId}/votes` | public | Retract a vote |
 | `GET` | `/api/auth/me` | public | Current authenticated user, or `null` |
 | `POST` | `/api/auth/logout` | public | Log out |
-| `GET` | `/oauth2/authorization/google` | public | Start Google OAuth2 login (Spring Security default endpoint) |
+| `GET` | `/api/oauth2/authorization/google` | public | Start Google OAuth2 login; Google redirects back to `/api/login/oauth2/code/google` |
+| `GET` | `/actuator/health` | public | Health check (liveness/readiness probes under `/actuator/health/{liveness,readiness}`) |
 
 Anonymous voting is tracked via an `X-Anonymous-Token` request header (client-generated); authenticated users vote via their OAuth2 session instead.
 
@@ -83,3 +84,52 @@ Anonymous voting is tracked via an `X-Anonymous-Token` request header (client-ge
 ```
 
 There's no test-specific configuration or embedded/testcontainers setup yet, so the test suite boots the full Spring context against the same Postgres/Redis from `docker-compose.yml` — make sure those are running first (step 1 above).
+
+## Docker
+
+```bash
+docker build -t ghcr.io/iamandresilva/pcs-checker-api:local .
+```
+
+Pushes to `main` build and publish `ghcr.io/iamandresilva/pcs-checker-api` (tagged with the commit SHA and `latest`) via `.github/workflows/docker.yml`.
+
+## Deploying to Kubernetes
+
+Manifests live in `k8s/` and are applied with Kustomize. They run the API, the UI ([pcs-checker-ui](https://github.com/IamAndreSilva/pcs-checker-ui)), Postgres and Redis in the `pcs-checker` namespace, plus a nightly `pg_dump` CronJob.
+
+| Path | Purpose |
+|---|---|
+| `k8s/base` | Workloads shared by every environment |
+| `k8s/overlays/local` | Local cluster (minikube/kind), placeholder secrets, no ingress |
+| `k8s/overlays/prod` | Ingress with TLS: `/api` goes to the API, everything else to the UI |
+| `k8s/cluster` | One-off cluster setup for k3s: Let's Encrypt issuer and Traefik settings |
+
+### Local cluster
+
+```bash
+minikube start
+minikube image load ghcr.io/iamandresilva/pcs-checker-api:local ghcr.io/iamandresilva/pcs-checker-ui:local
+kubectl apply -k k8s/overlays/local
+kubectl -n pcs-checker port-forward svc/api 8080:8080
+kubectl -n pcs-checker port-forward svc/ui 8081:80
+```
+
+### Production (k3s)
+
+1. Replace `PCS_HOST` in `k8s/overlays/prod` with the public hostname and point its DNS `A` record at the server.
+2. Install [cert-manager](https://cert-manager.io/docs/installation/), then `kubectl apply -f k8s/cluster/`.
+3. Create the secret (never committed):
+
+   ```bash
+   kubectl create namespace pcs-checker
+   kubectl -n pcs-checker create secret generic pcs-checker-secrets \
+     --from-literal=POSTGRES_PASSWORD=... \
+     --from-literal=TMDB_API_KEY=... \
+     --from-literal=GOOGLE_CLIENT_ID=... \
+     --from-literal=GOOGLE_CLIENT_SECRET=...
+   ```
+
+4. `kubectl apply -k k8s/overlays/prod`
+5. Add `https://<host>/api/login/oauth2/code/google` as an authorised redirect URI on the Google OAuth client.
+
+The API trusts `X-Forwarded-*` headers in the cluster (`SERVER_FORWARD_HEADERS_STRATEGY=native`), so it must only be reachable through the ingress.

@@ -18,6 +18,10 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    // Kept under /api so a reverse proxy only has to route one prefix to this service.
+    private static final String OAUTH_AUTHORIZATION_BASE_URI = "/api/oauth2/authorization";
+    private static final String OAUTH_REDIRECTION_BASE_URI = "/api/login/oauth2/code/*";
+
     private final OAuthSuccessHandler oAuthSuccessHandler;
 
     @Value("${app.frontend-url}")
@@ -37,9 +41,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/movies/*/votes").permitAll()
                         .requestMatchers(HttpMethod.DELETE, "/api/movies/*/votes").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/actuator/health/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
+                        .authorizationEndpoint(endpoint -> endpoint.baseUri(OAUTH_AUTHORIZATION_BASE_URI))
+                        .redirectionEndpoint(endpoint -> endpoint.baseUri(OAUTH_REDIRECTION_BASE_URI))
                         .successHandler(oAuthSuccessHandler)
                 )
                 .build();

@@ -1,0 +1,32 @@
+# For a local cluster (minikube/kind). Build the images as :local and load them
+# into the cluster first; reach the app with kubectl port-forward.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: pcs-checker
+
+resources:
+  - ../../base
+
+images:
+  - name: ghcr.io/iamandresilva/pcs-checker-api
+    newTag: local
+  - name: ghcr.io/iamandresilva/pcs-checker-ui
+    newTag: local
+
+configMapGenerator:
+  - name: api-config
+    behavior: merge
+    literals:
+      - APP_FRONTEND_URL=http://localhost:8081
+
+# Throwaway values; search and login need real ones.
+secretGenerator:
+  - name: pcs-checker-secrets
+    literals:
+      - POSTGRES_PASSWORD=local-only
+      - TMDB_API_KEY=changeme
+      - GOOGLE_CLIENT_ID=changeme
+      - GOOGLE_CLIENT_SECRET=changeme
+
+generatorOptions:
+  disableNameSuffixHash: true

@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+spec:
+  selector:
+    app: api
+  ports:
+    - port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/iamandresilva/pcs-checker-api
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: api-config
+          env:
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pcs-checker-secrets
+                  key: POSTGRES_PASSWORD
+            - name: TMDB_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: pcs-checker-secrets
+                  key: TMDB_API_KEY
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: pcs-checker-secrets
+                  key: GOOGLE_CLIENT_ID
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: pcs-checker-secrets
+                  key: GOOGLE_CLIENT_SECRET
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 36
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              memory: 768Mi
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false

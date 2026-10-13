@@ -1,0 +1,22 @@
+# The pcs-checker-secrets Secret is created out of band (see README) and is
+# deliberately not part of this overlay.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: pcs-checker
+
+resources:
+  - ../../base
+  - ingress.yaml
+
+images:
+  - name: ghcr.io/iamandresilva/pcs-checker-api
+    newTag: latest
+  - name: ghcr.io/iamandresilva/pcs-checker-ui
+    newTag: latest
+
+configMapGenerator:
+  - name: api-config
+    behavior: merge
+    literals:
+      - APP_FRONTEND_URL=https://PCS_HOST
+      - SERVER_SERVLET_SESSION_COOKIE_SECURE=true

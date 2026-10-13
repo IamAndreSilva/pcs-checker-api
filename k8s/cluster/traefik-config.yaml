@@ -1,0 +1,19 @@
+# k3s-specific: customises the bundled Traefik.
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    service:
+      spec:
+        # Preserve the client IP; the API rate-limits votes per IP.
+        externalTrafficPolicy: Local
+    ports:
+      web:
+        redirections:
+          entryPoint:
+            to: websecure
+            scheme: https
+            permanent: true
