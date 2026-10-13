@@ -22,7 +22,7 @@ class DataRetentionTests {
 
     private static final int MOVIE_ID = 999_001;
     private static final String IP_ADDRESS = "203.0.113.7";
-    private static final int DAYS_PAST_RETENTION = 4;
+    private static final int DAYS_PAST_RETENTION = 31;
 
     @Autowired
     private VoteRepository voteRepository;
