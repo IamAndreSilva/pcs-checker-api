@@ -1,0 +1,12 @@
+.git
+.github
+.idea
+.claude
+.mcp.json
+target
+k8s
+*.md
+docker-compose.yml
+# Local secrets must never end up in an image layer
+**/application-local.properties
+.env

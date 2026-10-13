@@ -39,11 +39,10 @@ public class VoteController {
         return ResponseEntity.ok(summary);
     }
 
+    // Behind a proxy, server.forward-headers-strategy=native makes the container resolve
+    // the client IP from trusted proxies only; reading X-Forwarded-For here would let
+    // callers spoof it and bypass the vote rate limit.
     private String resolveIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
-        }
         return request.getRemoteAddr();
     }
 }
