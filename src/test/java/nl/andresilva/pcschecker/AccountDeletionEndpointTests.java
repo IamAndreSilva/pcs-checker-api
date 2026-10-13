@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +15,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -22,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AccountDeletionEndpointTests {
 
     private static final String ACCOUNT_URL = "/api/auth/me";
+    private static final String VOTE_URL = "/api/movies/999002/votes";
 
     @Autowired
     private MockMvc mockMvc;
@@ -45,5 +48,17 @@ class AccountDeletionEndpointTests {
                 .andExpect(status().isNoContent());
 
         assertThat(userRepository.findByOauthId(oauthId)).isEmpty();
+    }
+
+    @Test
+    void sessionOfDeletedAccountIsTreatedAsAnonymous() throws Exception {
+        String oauthIdWithoutAccount = "test-" + UUID.randomUUID();
+
+        mockMvc.perform(post(VOTE_URL)
+                        .with(oauth2Login().attributes(attributes -> attributes.put("sub", oauthIdWithoutAccount)))
+                        .header("X-Anonymous-Token", UUID.randomUUID().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"hasPcs\":true}"))
+                .andExpect(status().isOk());
     }
 }

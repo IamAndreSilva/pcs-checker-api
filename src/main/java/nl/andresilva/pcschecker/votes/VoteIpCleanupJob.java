@@ -19,11 +19,19 @@ public class VoteIpCleanupJob {
 
     private static final Logger log = LoggerFactory.getLogger(VoteIpCleanupJob.class);
 
+    // The vote rate limit looks back one hour, so IPs must be kept for at least a day.
+    private static final long MIN_RETENTION_DAYS = 1;
+
     private final VoteRepository voteRepository;
     private final long retentionDays;
 
     public VoteIpCleanupJob(VoteRepository voteRepository,
                             @Value("${app.vote-ip-retention-days}") long retentionDays) {
+        if (retentionDays < MIN_RETENTION_DAYS) {
+            throw new IllegalArgumentException(
+                    "app.vote-ip-retention-days must be at least " + MIN_RETENTION_DAYS + ", was " + retentionDays);
+        }
+
         this.voteRepository = voteRepository;
         this.retentionDays = retentionDays;
     }

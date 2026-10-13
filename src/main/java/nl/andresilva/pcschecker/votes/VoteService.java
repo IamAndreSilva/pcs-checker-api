@@ -29,8 +29,9 @@ public class VoteService {
                                    String anonymousToken, OAuth2User oauthUser, String ipAddress) {
         checkRateLimit(ipAddress);
 
-        if (oauthUser != null) {
-            User user = resolveUser(oauthUser);
+        User user = resolveUser(oauthUser);
+
+        if (user != null) {
             voteRepository.findByTmdbMovieIdAndUserId(tmdbMovieId, user.getId())
                     .ifPresentOrElse(
                             v -> v.setHasPcs(hasPcs),
@@ -51,8 +52,9 @@ public class VoteService {
     @Transactional
     public VoteSummaryDto retractVote(Integer tmdbMovieId, String anonymousToken,
                                       OAuth2User oauthUser) {
-        if (oauthUser != null) {
-            User user = resolveUser(oauthUser);
+        User user = resolveUser(oauthUser);
+
+        if (user != null) {
             voteRepository.findByTmdbMovieIdAndUserId(tmdbMovieId, user.getId())
                     .ifPresent(voteRepository::delete);
             return buildSummary(tmdbMovieId, null, user.getId());
@@ -66,7 +68,13 @@ public class VoteService {
 
     @Transactional(readOnly = true)
     public VoteSummaryDto getSummary(Integer tmdbMovieId, String anonymousToken, OAuth2User oauthUser) {
-        UUID userId = oauthUser != null ? resolveUser(oauthUser).getId() : null;
+        User user = resolveUser(oauthUser);
+        UUID userId = null;
+
+        if (user != null) {
+            userId = user.getId();
+        }
+
         return buildSummary(tmdbMovieId, anonymousToken, userId);
     }
 
@@ -106,8 +114,14 @@ public class VoteService {
         }
     }
 
+    // Returns null for anonymous callers, and for sessions whose account has since been
+    // deleted (other devices stay signed in until their session expires); both are then
+    // handled as anonymous.
     private User resolveUser(OAuth2User oauthUser) {
-        return userRepository.findByOauthId(oauthUser.getName())
-                .orElseThrow(() -> new IllegalStateException("Authenticated user not found in DB"));
+        if (oauthUser == null) {
+            return null;
+        }
+
+        return userRepository.findByOauthId(oauthUser.getName()).orElse(null);
     }
 }
