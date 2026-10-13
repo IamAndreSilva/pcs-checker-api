@@ -57,7 +57,7 @@ class DataRetentionTests {
     }
 
     @Test
-    void deletingAccountRemovesUserAndTheirVotesOnly() {
+    void deletingAccountRemovesUserAndAnonymizesTheirVotes() {
         String oauthId = "test-" + UUID.randomUUID();
         User user = userRepository.saveAndFlush(new User(oauthId + "@example.test", "Test User", null, oauthId));
         Vote userVote = voteRepository.saveAndFlush(new Vote(MOVIE_ID, true, null, user, IP_ADDRESS));
@@ -68,8 +68,16 @@ class DataRetentionTests {
         entityManager.clear();
 
         assertThat(userRepository.findByOauthId(oauthId)).isEmpty();
-        assertThat(voteRepository.findById(userVote.getId())).isEmpty();
-        assertThat(voteRepository.findById(otherVote.getId())).isPresent();
+
+        Vote keptVote = voteRepository.findById(userVote.getId()).orElseThrow();
+        assertThat(keptVote.getUser()).isNull();
+        assertThat(keptVote.getIpAddress()).isNull();
+        assertThat(keptVote.getAnonymousToken()).isNotBlank();
+        assertThat(keptVote.getHasPcs()).isTrue();
+
+        Vote untouchedVote = voteRepository.findById(otherVote.getId()).orElseThrow();
+        assertThat(untouchedVote.getAnonymousToken()).isEqualTo(otherVote.getAnonymousToken());
+        assertThat(untouchedVote.getIpAddress()).isEqualTo(IP_ADDRESS);
     }
 
     private Vote anonymousVote() {
