@@ -1,6 +1,7 @@
 package nl.andresilva.pcschecker.auth;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -11,9 +12,11 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UserRepository userRepository;
+    private final AccountService accountService;
 
-    public AuthController(UserRepository userRepository) {
+    public AuthController(UserRepository userRepository, AccountService accountService) {
         this.userRepository = userRepository;
+        this.accountService = accountService;
     }
 
     @GetMapping("/me")
@@ -25,6 +28,19 @@ public class AuthController {
                 .map(UserDto::from)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.ok(null));
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteAccount(@AuthenticationPrincipal OAuth2User oauthUser,
+                                              HttpServletRequest request) throws Exception {
+        if (oauthUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        accountService.deleteAccount(oauthUser.getName());
+        request.logout();
+
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/logout")

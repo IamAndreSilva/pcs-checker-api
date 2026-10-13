@@ -59,6 +59,7 @@ TMDB_API_KEY=xxx GOOGLE_CLIENT_ID=xxx GOOGLE_CLIENT_SECRET=xxx ./mvnw spring-boo
 | `TMDB_API_KEY` | `changeme` | TMDB API key for movie search/details |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | `changeme` | Google OAuth2 login credentials |
 | `app.frontend-url` | `http://localhost:5173` | Allowed CORS origin and OAuth2 redirect target |
+| `app.vote-ip-retention-days` | `3` | Days a vote keeps its IP address (used for rate limiting) before an hourly job clears it |
 
 The frontend is expected to run separately at `http://localhost:5173`.
 
@@ -72,6 +73,7 @@ The frontend is expected to run separately at `http://localhost:5173`.
 | `DELETE` | `/api/movies/{tmdbId}/votes` | public | Retract a vote |
 | `GET` | `/api/auth/me` | public | Current authenticated user, or `null` |
 | `POST` | `/api/auth/logout` | public | Log out |
+| `DELETE` | `/api/auth/me` | signed in | Delete the current account and the votes cast with it |
 | `GET` | `/api/oauth2/authorization/google` | public | Start Google OAuth2 login; Google redirects back to `/api/login/oauth2/code/google` |
 | `GET` | `/actuator/health` | public | Health check (liveness/readiness probes under `/actuator/health/{liveness,readiness}`) |
 
