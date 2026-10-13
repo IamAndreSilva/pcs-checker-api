@@ -1,6 +1,7 @@
 package nl.andresilva.pcschecker.votes;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -26,4 +27,12 @@ public interface VoteRepository extends JpaRepository<Vote, UUID> {
 
     @Query("SELECT v.tmdbMovieId, SUM(CASE WHEN v.hasPcs = true THEN 1 ELSE 0 END), SUM(CASE WHEN v.hasPcs = false THEN 1 ELSE 0 END) FROM Vote v WHERE v.tmdbMovieId IN :ids GROUP BY v.tmdbMovieId")
     List<Object[]> countVotesByMovieIds(@Param("ids") List<Integer> tmdbMovieIds);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("UPDATE Vote v SET v.ipAddress = NULL WHERE v.ipAddress IS NOT NULL AND v.createdAt < :cutoff")
+    int clearIpAddressesOlderThan(@Param("cutoff") Instant cutoff);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("DELETE FROM Vote v WHERE v.user.id = :userId")
+    int deleteByUserId(@Param("userId") UUID userId);
 }
