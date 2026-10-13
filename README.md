@@ -129,6 +129,15 @@ kubectl -n pcs-checker port-forward svc/ui 8081:80
      --from-literal=GOOGLE_CLIENT_SECRET=...
    ```
 
+   The images are private, so the cluster also needs a registry secret, created from a GitHub token that has only the `read:packages` scope:
+
+   ```bash
+   kubectl -n pcs-checker create secret docker-registry ghcr-pull \
+     --docker-server=ghcr.io --docker-username=<github-user> --docker-password=<token>
+   ```
+
+   Changing `POSTGRES_PASSWORD` later has no effect on an existing database volume; rotate it with `ALTER USER` as well.
+
 4. `kubectl apply -k k8s/overlays/prod`
 5. Add `https://<host>/api/login/oauth2/code/google` as an authorised redirect URI on the Google OAuth client.
 

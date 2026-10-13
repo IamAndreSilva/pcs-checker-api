@@ -9,6 +9,7 @@ spec:
   tls:
     - hosts:
         - stingercheck.com
+        - www.stingercheck.com
       secretName: pcs-checker-tls
   rules:
     - host: stingercheck.com
@@ -21,6 +22,41 @@ spec:
                 name: api
                 port:
                   number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ui
+                port:
+                  number: 80
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: www-redirect
+spec:
+  redirectRegex:
+    regex: ^https?://www\.stingercheck\.com/(.*)
+    replacement: https://stingercheck.com/${1}
+    permanent: true
+---
+# www only redirects to the apex domain; the backend is never reached.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pcs-checker-www
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: pcs-checker-www-redirect@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - www.stingercheck.com
+      secretName: pcs-checker-tls
+  rules:
+    - host: www.stingercheck.com
+      http:
+        paths:
           - path: /
             pathType: Prefix
             backend:
